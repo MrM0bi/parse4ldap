@@ -13,14 +13,14 @@ import math
 #          ["notes", -2]]
 
 
-index = [["name", -0], ["firstname", -1], ["lastname", -1], ["email", -1], ["title", -1], ["company", -1],
-         ["workAddress", -1], ["workPostalCode", -1], ["workPhone", 1], ["cellPhone", 2], ["homePhone", -1], ["fax", -1],
-         ["notes", -1]]
+index = [["name", -1], ["firstname", 2], ["lastname", 1], ["email", -1], ["title", -1], ["company", -1],
+         ["workAddress", -1], ["workPostalCode", -1], ["workPhone", -1], ["cellPhone", 4], ["homePhone", 5], ["fax", -1],
+         ["notes", 3]]
 
 
 HASHEADER = True
 IGNORECSVERRORS = False
-REPLACEOUTPUTWITHPRECENT = False
+REPLACEOUTPUTWITHPRECENT = True
 CHECKLASTNAMEDUPES = True
 QUOTEVALUES = False
 EXPORTASLDIF = False
@@ -33,22 +33,21 @@ DELIMITER = ";"
 ### Client specific settings
 ROTTENSTEINERFIX = False
 LAUBENREISENFIX = False
-TVLAJENFIX = True
 
 
 ### File Confgs
 
 INPUTFILEPATH = OUTPUTFILEPATH = PREEXISTINGLIST = ALREADYPROCESSED = MIDEUPREFIXES = REGPREFIXES = LDAPUSER = ""
 
-INPUTFILEPATH = "<path2file>"
+INPUTFILEPATH = "/home/herb/Documents/ProgrmmierStuff/Python Workspace/Kunden/donamartin/kontakte.csv"
 
 # PREEXISTINGLIST = "<path2file>"
 # ALREADYPROCESSED = "<path2file>"
 
 OUTPUTFILEPATH = re.sub("\.csv$", "_output", INPUTFILEPATH, 1)
 
-MIDEUPREFIXES = f"{os.getcwd()}/MidEuPrefixes.csv"
-REGPREFIXES = f"{os.getcwd()}/ItalyRegionalPrefixes.csv"
+MIDEUPREFIXES = f"{os.getcwd()}/Allgemeine/parse4ldap/MidEuPrefixes.csv"
+REGPREFIXES = f"{os.getcwd()}/Allgemeine/parse4ldap/ItalyRegionalPrefixes.csv"
 
 
 ### LDIF Configs
@@ -152,17 +151,12 @@ def fixPhone(number):
 
         if re.search("^\+", number):
             number = "+" + re.sub("\D", "", number)
-        else:            number = re.sub("\D", "", number)
+        else:            
+            number = re.sub("\D", "", number)
 
         if re.search("^\+", number):
             national = "00" + number[1:3]
             number = number[3:]
-        elif re.search("^39", number):
-            national = "0039"
-            number = re.sub("^39", "", number, 1)
-
-        if TVLAJENFIX and re.search("^4", number):
-            number = "0" + number
 
         if re.search("^00", number):
             if number[2:4] in mideuprefixes:
