@@ -1,0 +1,33 @@
+dn: cn=AN_32104,ou=benjamintest,dc=ldap,dc=vip,dc=rolvoice,dc=it
+cn: Marion Linter
+givenName: Marion
+sn: Linter
+mobile: +4369919048029
+objectclass: top
+objectclass: inetOrgPerson
+
+dn: cn=AN_27314,ou=benjamintest,dc=ldap,dc=vip,dc=rolvoice,dc=it
+cn: Umed Kumar Panwar
+givenName: Umed Kumar
+sn: Panwar
+mobile: +393279753247
+objectclass: top
+objectclass: inetOrgPerson
+
+dn: cn=Vorname Nachname,ou=benjamintest,dc=ldap,dc=vip,dc=rolvoice,dc=it
+givenName: Vorname
+sn: Nachname
+uid: 20210326084503.JcyuB4GDi5ruYpt1rVoLYA1@ldap.vip.rolvoice.it
+cn: Vorname Nachname
+objectClass: top
+objectClass: inetOrgPerson
+mail: mail@domain.com
+title: Title
+o: Comp
+postalAddress: Adress
+postalCode: 39100
+telephoneNumber: +3904712222222
+mobile: +3904711111111
+homePhone: +3904710000000
+facsimileTelephoneNumber: +3904713333333
+description: Notes
