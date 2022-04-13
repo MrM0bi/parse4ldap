@@ -268,7 +268,7 @@ def isKaputt(line):
 
 
 # Splits a name into first and lastname
-def splitname(name, characters = [" "], ignorechars = ["&", "gmbh", "k.g."]):
+def splitname(name, characters = [" "], ignorechars = ["&", "gmbh", "k.g.", "g.m.b.h.", "gmbh", "o.h.g.", "ohg"]):
     firstname = lastname = ""
 
     ### ToDo: imporove separating names
