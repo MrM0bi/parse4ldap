@@ -6,28 +6,34 @@ from time import sleep
 import math
 
 # # Maches the Rows of the inputfiles with the Rows the LDAP accepts
-# # -1 : Not present/Do not set | -2 : Auto Fill **Not workin at the moment** | <num> Row of inputfile
+# # -1 : Not present/Do not set | -2 : Auto Fill **Not working at the moment** | <num> Row of inputfile
 # # ##### DO NOT CHANGE THE ORDER OF THE INDEX NAMES ######
 # index = [["name", -2], ["firstname", 2], ["lastname", -1], ["email", -1], ["title", -1], ["company", 1],
 #          ["workAddress", -1], ["workPostalCode", -1], ["workPhone", 3], ["cellPhone", 5], ["homePhone", 4], ["fax", -1],
 #          ["notes", -2]]
 
 
-index = [["name", -1], ["firstname", 2], ["lastname", 1], ["email", -1], ["title", -1], ["company", -1],
-         ["workAddress", -1], ["workPostalCode", -1], ["workPhone", -1], ["cellPhone", 4], ["homePhone", 5], ["fax", -1],
-         ["notes", 3]]
+index = [["name", 2], ["firstname", -1], ["lastname", -1], ["email", 3], ["title", -1], ["company", -1],
+         ["workAddress", -1], ["workPostalCode", -1], ["workPhone", 5], ["cellPhone", 11], ["homePhone", -1], ["fax", -1],
+         ["notes", -1]]
 
 
 HASHEADER = True
 IGNORECSVERRORS = False
 REPLACEOUTPUTWITHPRECENT = True
 CHECKLASTNAMEDUPES = True
+
 QUOTEVALUES = False
 EXPORTASLDIF = False
-VALIDATEEMAIL = False
+VALIDATEEMAIL = True
 NOWORDSINTEXT = True
 
 DELIMITER = ";"
+
+### Remap Names 
+# Column of complete name; None to disable
+MAPNAME = "0"
+MAPNAMEFIRSTNAMEFIRST = False
 
 
 ### Client specific settings
@@ -39,12 +45,14 @@ LAUBENREISENFIX = False
 
 INPUTFILEPATH = OUTPUTFILEPATH = PREEXISTINGLIST = ALREADYPROCESSED = MIDEUPREFIXES = REGPREFIXES = LDAPUSER = ""
 
-INPUTFILEPATH = "/home/herb/Documents/ProgrmmierStuff/Python Workspace/Kunden/donamartin/kontakte.csv"
+INPUTFILEPATH = "/home/herb/Documents/ProgrmmierStuff/Python Workspace/Kunden/RK Sarntal/Rohdatei.csv"
 
-# PREEXISTINGLIST = "<path2file>"
+# PREEXISTINGLIST = "<path2file>" 
 # ALREADYPROCESSED = "<path2file>"
 
 OUTPUTFILEPATH = re.sub("\.csv$", "_output", INPUTFILEPATH, 1)
+
+print(os.getcwd())
 
 MIDEUPREFIXES = f"{os.getcwd()}/Allgemeine/parse4ldap/MidEuPrefixes.csv"
 REGPREFIXES = f"{os.getcwd()}/Allgemeine/parse4ldap/ItalyRegionalPrefixes.csv"
@@ -108,8 +116,7 @@ def getPrelist():
                     l = l.split(DELIMITER)
                     ret.append(l)
             else:
-                print(
-                    "-> [ERROR] Pre-List doesnt have the right amount of fields that an output list should have, aborting to read pre-list...")
+                print("-> [ERROR] Pre-List doesnt have the right amount of fields that an output list should have, aborting to read pre-list...")
     return ret
 
 
@@ -260,6 +267,57 @@ def isKaputt(line):
     return kaputt
 
 
+# Splits a name into first and lastname
+def splitname(name, characters = [" "], ignorechars = ["&", "gmbh", "k.g."]):
+    firstname = lastname = ""
+
+    ### ToDo: imporove separating names
+    for ch in characters:
+        if ch in name:
+            sname = str(name).strip().split(ch)
+
+            tobeignored = False
+            for ic in ignorechars:
+                if ic in str(name).lower():
+                    tobeignored = True
+
+            if not tobeignored:
+                if MAPNAMEFIRSTNAMEFIRST:
+                    if len(sname) == 2:
+                        firstname = sname[0]
+                        lastname = sname[1]
+                    elif len(sname) >= 3:
+                        fnamearr = []
+                        for item in sname:
+                            if len(item) > 2:
+                                fnamearr.append(item)
+
+                        firstname = fnamearr.pop(0)
+                        lastname = " ".join(fnamearr)
+                else:
+                    if len(sname) == 2:
+                        lastname = sname[0]
+                        firstname = sname[1]
+                    elif len(sname) >= 3:
+                        fnamearr = []
+                        for item in sname:
+                            if len(item) > 2:
+                                fnamearr.append(item)
+
+                        firstname = fnamearr.pop()
+                        lastname = " ".join(fnamearr)
+                        
+            else:
+                firstname = ""
+                lastname = name
+
+            break
+        
+    # print(f"--> OG: { str(name).ljust(25, ' ') }   First: { str(firstname).ljust(15, ' ') }  Last: { str(lastname).ljust(15, ' ') }")
+    return [firstname, lastname]
+
+
+
 # Places the columns into a given Squence like its defined in the index array
 def columnManager(line, uncnt):
     temp = [""] * 13
@@ -274,17 +332,34 @@ def columnManager(line, uncnt):
     if len(ALREADYPROCESSED) > 3:
         temp = line
     else:
+
         # name
         if index[0][1] >= 0:
             temp[0] = fixText(line[index[0][1]]).title()
 
-        # fistname
-        if index[1][1] >= 0:
-            temp[1] = fixText(line[index[1][1]]).title()
+        if MAPNAME is not None and re.match("^\d+$", MAPNAME):
+            completename = line[index[ int(MAPNAME) ][1]]
+            snames = splitname(completename, [" "])
 
-        # lastname
-        if index[2][1] >= 0:
-            temp[2] = fixText(line[index[2][1]]).title()
+            # fistname
+            if index[1][1] >= 0 and len(line[index[1][1]]) > 0:
+                temp[1] = fixText(line[index[1][1]]).title()
+            else:
+                temp[1] = fixText(snames[0]).title() 
+
+            # lastname
+            if index[2][1] >= 0 and len(line[index[2][1]]) > 0:
+                temp[2] = fixText(line[index[2][1]]).title()
+            else:
+                temp[2] = fixText(snames[1]).title()
+        else:
+            # fistname
+            if index[1][1] >= 0:
+                temp[1] = fixText(line[index[1][1]]).title()
+
+            # lastname
+            if index[2][1] >= 0:
+                temp[2] = fixText(line[index[2][1]]).title()
 
         # email
         if index[3][1] >= 0:
